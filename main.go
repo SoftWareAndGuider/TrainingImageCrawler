@@ -2,7 +2,10 @@ package main
 
 import (
 	"fmt"
-	"time"
+	"io"
+	"net/http"
+	"os"
+	"strings"
 
 	"github.com/c-bata/go-prompt"
 	"github.com/tebeka/selenium"
@@ -48,7 +51,8 @@ func main() {
 		panic(err)
 	}
 
-	i := 0
+	i := -1
+	str := ""
 	for true {
 		elems, err := wd.FindElements(selenium.ByCSSSelector, ".rg_i")
 		if err != nil {
@@ -68,9 +72,45 @@ func main() {
 				panic(err)
 			}
 
-			time.Sleep(3 * time.Second)
+			src, err := elem2.GetAttribute("src")
+			if err != nil {
+				panic(err)
+			}
 
-			fmt.Println(elem2.GetAttribute("src"))
+			if strings.HasPrefix(src, "https://encrypted-tbn0.gstatic.com/") {
+				if str == src {
+					continue
+				} else {
+					str = src
+				}
+
+				filepath := fmt.Sprintf("./downloads/%s-%d", query, i2)
+				downloadFile(filepath, src)
+			}
 		}
 	}
+}
+
+func downloadFile(filepath string, url string) error {
+
+	// Get the data
+	resp, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	contype := strings.Split(resp.Header.Get("content-type"), "/")[1]
+	filepath = filepath + "." + contype
+
+	// Create the file
+	out, err := os.Create(filepath)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
+	// Write the body to file
+	_, err = io.Copy(out, resp.Body)
+	return err
 }
