@@ -1,0 +1,6 @@
+package: .
+import:
+- package: github.com/tebeka/selenium
+  version: ^0.9.9
+- package: github.com/c-bata/go-prompt
+  version: ^0.2.5

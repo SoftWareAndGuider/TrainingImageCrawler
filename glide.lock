@@ -1,0 +1,15 @@
+hash: b722d994ff655fedba7433248c805c77d56568ec99609a86389e36dadf835f63
+updated: 2020-09-26T01:00:42.452063249+09:00
+imports:
+- name: github.com/blang/semver
+  version: 4487282d78122a245e413d7515e7c516b70c33fd
+- name: github.com/c-bata/go-prompt
+  version: 01aad35f3856bd90de9cbb9b23c6850071a95430
+- name: github.com/tebeka/selenium
+  version: e24f7b7726ca0d40f51b3ba4c5d5c4ddcb4bae80
+  subpackages:
+  - chrome
+  - firefox
+  - internal/zip
+  - log
+testImports: []
