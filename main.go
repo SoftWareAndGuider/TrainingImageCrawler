@@ -26,7 +26,7 @@ func main() {
 		port            = 8080
 	)
 
-	query := prompt.Input("> ", completer)
+	querys := strings.Split(prompt.Input("> ", completer), ",")
 
 	opts := []selenium.ServiceOption{
 		selenium.GeckoDriver(geckoDriverPath), // Specify the path to GeckoDriver in order to use Firefox
@@ -46,46 +46,55 @@ func main() {
 	}
 	defer wd.Quit()
 
-	// Navigate to the simple playground interface.
-	if err := wd.Get("http://google.com/search?tbm=isch&q=" + query); err != nil {
-		panic(err)
-	}
+	for _, query := range querys {
 
-	i := -1
-	str := ""
-	for true {
-		elems, err := wd.FindElements(selenium.ByCSSSelector, ".rg_i")
-		if err != nil {
+		os.MkdirAll("./downloads/"+query, os.ModeDir)
+		// Navigate to the simple playground interface.
+		if err := wd.Get("http://google.com/search?tbm=isch&q=" + query); err != nil {
 			panic(err)
 		}
 
-		for i2, elem := range elems {
-			if i >= i2 {
-				continue
-			} else {
-				i = i2
+		i := -1
+		str := ""
+		for true {
+			if i > 130 {
+				break
 			}
 
-			elem.Click()
-			elem2, err := wd.FindElement(selenium.ByCSSSelector, ".n3VNCb")
+			elems, err := wd.FindElements(selenium.ByCSSSelector, ".rg_i")
 			if err != nil {
 				panic(err)
 			}
 
-			src, err := elem2.GetAttribute("src")
-			if err != nil {
-				panic(err)
-			}
-
-			if strings.HasPrefix(src, "https://encrypted-tbn0.gstatic.com/") {
-				if str == src {
+			for i2, elem := range elems {
+				if i >= i2 {
 					continue
 				} else {
-					str = src
+					i = i2
 				}
 
-				filepath := fmt.Sprintf("./downloads/%s-%d", query, i2)
-				downloadFile(filepath, src)
+				elem.Click()
+				elem2, err := wd.FindElement(selenium.ByCSSSelector, ".n3VNCb")
+				if err != nil {
+					panic(err)
+				}
+
+				src, err := elem2.GetAttribute("src")
+				if err != nil {
+					panic(err)
+				}
+
+				if strings.HasPrefix(src, "https://encrypted-tbn0.gstatic.com/") {
+					if str == src {
+						continue
+					} else {
+						str = src
+					}
+
+					filepath := fmt.Sprintf("./downloads/%s/%d", query, i2)
+					fmt.Printf("saved \"%s\" to \"%s\"\n", src, filepath)
+					downloadFile(filepath, src)
+				}
 			}
 		}
 	}
